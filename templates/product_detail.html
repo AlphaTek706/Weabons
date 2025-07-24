@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - متجر الأسلحة{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            {% if product.image_url %}
+            <img src="{{ url_for('static', filename=product.image_url.replace('static/images/', 'images/')) }}"
+                class="img-fluid rounded" alt="{{ product.name }}">
+            {% else %}
+            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 400px;">
+                <i class="fas fa-image fa-5x text-muted"></i>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <h1>{{ product.name }}</h1>
+            <p class="text-muted">الفئة: {{ product.category.name }}</p>
+
+            <div class="mb-3">
+                <span class="h3 text-primary">${{ product.price }}</span>
+            </div>
+
+            <div class="mb-3">
+                {% if product.stock_quantity > 0 %}
+                <span class="badge bg-success fs-6">متوفر ({{ product.stock_quantity }} قطعة)</span>
+                {% else %}
+                <span class="badge bg-danger fs-6">نفد المخزون</span>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <h5>الوصف</h5>
+                <p>{{ product.description }}</p>
+            </div>
+
+            {% if current_user.is_authenticated and product.stock_quantity > 0 %}
+            <div class="mb-3">
+                <a href="{{ url_for('main.add_to_cart', product_id=product.id) }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-shopping-cart"></i> إضافة إلى السلة
+                </a>
+            </div>
+            {% elif not current_user.is_authenticated %}
+            <div class="mb-3">
+                <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-lg">
+                    تسجيل الدخول للشراء
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="product-meta">
+                <small class="text-muted">
+                    <i class="fas fa-clock"></i> تم الإضافة في {{ product.created_at.strftime('%Y-%m-%d') }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3>منتجات ذات صلة</h3>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for product in related_products %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card h-100">
+                {% if product.image_url %}
+                <img src="{{ url_for('static', filename=product.image_url.replace('static/images/', 'images/')) }}"
+                    class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top d-flex align-items-center justify-content-center bg-light"
+                    style="height: 200px;">
+                    <i class="fas fa-image fa-3x text-muted"></i>
+                </div>
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text flex-grow-1">{{ product.description[:50] }}...</p>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h6 text-primary mb-0">${{ product.price }}</span>
+                            <a href="{{ url_for('main.product_detail', id=product.id) }}"
+                                class="btn btn-outline-primary btn-sm">عرض</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

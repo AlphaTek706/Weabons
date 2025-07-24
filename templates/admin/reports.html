@@ -1,0 +1,458 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">لوحة التقارير والإحصائيات</h1>
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-download fa-sm"></i> تصدير التقارير
+            </button>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="#" onclick="exportReport('pdf')"><i class="fas fa-file-pdf"></i> PDF</a>
+                <a class="dropdown-item" href="#" onclick="exportReport('excel')"><i class="fas fa-file-excel"></i>
+                    Excel</a>
+                <a class="dropdown-item" href="#" onclick="exportReport('csv')"><i class="fas fa-file-csv"></i> CSV</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row">
+        <!-- Total Sales Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                إجمالي المبيعات</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ "%.2f"|format(total_sales) }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Count Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                عدد الطلبات</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ orders_count }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avg Order Value Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                متوسط قيمة الطلب</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ "%.2f"|format(avg_order_value) }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Products Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                المنتجات الأكثر مبيعاً</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ top_products|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-trophy fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <!-- Sales Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">مبيعات الشهور الماضية</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                            aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">خيارات الرسم البياني:</div>
+                            <a class="dropdown-item" href="#" onclick="changeChartType('bar')">أعمدة</a>
+                            <a class="dropdown-item" href="#" onclick="changeChartType('line')">خطي</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#" onclick="downloadChart()">حفظ الصورة</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="monthlySalesChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-primary"></i> المبيعات
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-success"></i> عدد الطلبات
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Products Chart -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">أفضل 10 منتجات مبيعاً</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        {% for product in top_products %}
+                        <span class="mr-2">
+                            <i class="fas fa-circle" style="color: {{ getChartColor(loop.index0) }}"></i> {{
+                            product.name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Sales Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">تفاصيل المبيعات الشهرية</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="salesTable" width="100%" cellspacing="0">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>الشهر</th>
+                                    <th>إجمالي المبيعات</th>
+                                    <th>عدد الطلبات</th>
+                                    <th>متوسط قيمة الطلب</th>
+                                    <th>النمو الشهري</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in monthly_sales %}
+                                <tr>
+                                    <td>{{ sale.month.strftime('%Y-%m') }}</td>
+                                    <td>${{ "%.2f"|format(sale.total) }}</td>
+                                    <td>{{ sale.order_count }}</td>
+                                    <td>${{ "%.2f"|format(sale.total / sale.order_count if sale.order_count > 0 else 0)
+                                        }}</td>
+                                    <td>
+                                        {% if loop.index0 > 0 %}
+                                        {% set prev_total = monthly_sales[loop.index0-1].total %}
+                                        {% set growth = ((sale.total - prev_total) / prev_total * 100) if prev_total > 0
+                                        else 0 %}
+                                        <span class="{{ 'text-success' if growth >= 0 else 'text-danger' }}">
+                                            <i class="fas {{ 'fa-arrow-up' if growth >= 0 else 'fa-arrow-down' }}"></i>
+                                            {{ "%.1f"|format(growth) }}%
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+<script>
+    // Global chart variables
+    let monthlySalesChart;
+    let topProductsChart;
+
+    // Colors for charts
+    const chartColors = [
+        '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+        '#5a5c69', '#858796', '#3a3b45', '#2e59d9', '#17a673'
+    ];
+
+    // Document ready
+    $(document).ready(function () {
+        // Initialize charts
+        initMonthlySalesChart();
+        initTopProductsChart();
+
+        // Initialize DataTable
+        $('#salesTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json'
+            },
+            order: [[0, 'desc']]
+        });
+    });
+
+    // Monthly Sales Chart
+    function initMonthlySalesChart() {
+        const ctx = document.getElementById('monthlySalesChart');
+
+        monthlySalesChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    {% for sale in monthly_sales %}
+                    '{{ sale.month.strftime("%Y-%m") }}',
+                {% endfor %}
+            ],
+    datasets: [{
+        label: 'المبيعات ($)',
+        data: [
+            {% for sale in monthly_sales %}
+                        {{ sale.total or 0 }},
+    {% endfor %}
+    ],
+        backgroundColor: 'rgba(78, 115, 223, 0.5)',
+            borderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 1,
+                    yAxisID: 'y'
+            }, {
+        label: 'عدد الطلبات',
+            data: [
+                {% for sale in monthly_sales %}
+    { { sale.order_count or 0 } },
+    {% endfor %}
+                ],
+    backgroundColor: 'rgba(28, 200, 138, 0.5)',
+        borderColor: 'rgba(28, 200, 138, 1)',
+            borderWidth: 1,
+                type: 'line',
+                    yAxisID: 'y1'
+            }]
+        },
+    options: {
+        maintainAspectRatio: false,
+            responsive: true,
+                plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.datasetIndex === 0) {
+                            label += '$' + context.parsed.y.toFixed(2);
+                        } else {
+                            label += context.parsed.y;
+                        }
+                        return label;
+                    }
+                }
+            },
+            legend: {
+                position: 'top',
+                    rtl: true
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: false
+                }
+            },
+            y: {
+                type: 'linear',
+                    display: true,
+                        position: 'left',
+                            title: {
+                    display: true,
+                        text: 'المبيعات ($)'
+                },
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            },
+            y1: {
+                type: 'linear',
+                    display: true,
+                        position: 'right',
+                            title: {
+                    display: true,
+                        text: 'عدد الطلبات'
+                },
+                grid: {
+                    drawOnChartArea: false
+                }
+            }
+        }
+    }
+    });
+}
+
+    // Top Products Chart
+    function initTopProductsChart() {
+        const ctx = document.getElementById('topProductsChart');
+
+        topProductsChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    {% for product in top_products %}
+                    '{{ product.name }}',
+                {% endfor %}
+            ],
+    datasets: [{
+        data: [
+            {% for product in top_products %}
+                        {{ product.total_sold }},
+    {% endfor %}
+    ],
+        backgroundColor: [
+            {% for product in top_products %}
+    chartColors[{{ loop.index0 }} % chartColors.length],
+    {% endfor %}
+                ],
+    borderWidth: 1
+            }]
+        },
+    options: {
+        maintainAspectRatio: false,
+            responsive: true,
+                plugins: {
+            legend: {
+                display: false
+            },
+            datalabels: {
+                formatter: (value, ctx) => {
+                    let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    let percentage = (value * 100 / sum).toFixed(1) + '%';
+                    return percentage;
+                },
+                    color: '#fff',
+                        font: {
+                    weight: 'bold'
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += context.raw + ' قطعة';
+                        return label;
+                    }
+                }
+            }
+        },
+        cutout: '70%'
+    },
+    plugins: [ChartDataLabels]
+    });
+}
+
+    // Change chart type
+    function changeChartType(type) {
+        monthlySalesChart.config.type = type;
+        monthlySalesChart.update();
+    }
+
+    // Download chart as image
+    function downloadChart() {
+        const link = document.createElement('a');
+        link.download = 'monthly-sales-chart.png';
+        link.href = document.getElementById('monthlySalesChart').toDataURL('image/png');
+        link.click();
+    }
+
+    // Export report function
+    function exportReport(format) {
+        // In a real implementation, this would make an AJAX call to the server
+        Swal.fire({
+            title: 'جاري التصدير',
+            text: 'سيتم تحميل التقرير بصيغة ' + format.toUpperCase(),
+            icon: 'info',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+</script>
+
+<style>
+    .card {
+        border-radius: 0.35rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    }
+
+    .chart-area {
+        position: relative;
+        height: 20rem;
+        width: 100%;
+    }
+
+    .chart-pie {
+        position: relative;
+        height: 15rem;
+        width: 100%;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .text-rtl {
+        direction: rtl;
+        text-align: right;
+    }
+</style>
+{% endblock %}

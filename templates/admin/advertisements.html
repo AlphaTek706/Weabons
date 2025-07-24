@@ -1,0 +1,118 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2>إدارة الإعلانات</h2>
+    </div>
+    <div class="col-md-6 text-left">
+        <a href="{{ url_for('admin.add_advertisement') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> إضافة إعلان جديد
+        </a>
+    </div>
+</div>
+
+<!-- Advertisements Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>الصورة</th>
+                        <th>العنوان</th>
+                        <th>الموقع</th>
+                        <th>الحالة</th>
+                        <th>تاريخ البداية</th>
+                        <th>تاريخ النهاية</th>
+                        <th>تاريخ الإنشاء</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ad in advertisements.items %}
+                        <tr>
+                            <td>
+                                {% if ad.image_url %}
+                                    <img src="{{ ad.image_url }}" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>{{ ad.title }}</td>
+                            <td>
+                                {% if ad.position == 'header' %}
+                                    <span class="badge bg-primary">أعلى الصفحة</span>
+                                {% elif ad.position == 'sidebar' %}
+                                    <span class="badge bg-info">الشريط الجانبي</span>
+                                {% elif ad.position == 'footer' %}
+                                    <span class="badge bg-secondary">أسفل الصفحة</span>
+                                {% elif ad.position == 'popup' %}
+                                    <span class="badge bg-warning">نافذة منبثقة</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ad.is_active %}
+                                    <span class="badge bg-success">نشط</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ ad.start_date.strftime('%Y-%m-%d') if ad.start_date else 'غير محدد' }}</td>
+                            <td>{{ ad.end_date.strftime('%Y-%m-%d') if ad.end_date else 'غير محدد' }}</td>
+                            <td>{{ ad.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="editAd({{ ad.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteAd({{ ad.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if advertisements.pages > 1 %}
+    <nav aria-label="صفحات الإعلانات" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if advertisements.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.advertisements', page=advertisements.prev_num) }}">السابق</a>
+                </li>
+            {% endif %}
+            
+            {% for page_num in advertisements.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != advertisements.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.advertisements', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if advertisements.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.advertisements', page=advertisements.next_num) }}">التالي</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2>إدارة الطلبات</h2>
+    </div>
+</div>
+
+<!-- Status Filter -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <form method="GET" class="d-flex">
+            <select name="status" class="form-select me-2">
+                <option value="">جميع الحالات</option>
+                <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>في الانتظار</option>
+                <option value="processing" {% if current_status == 'processing' %}selected{% endif %}>قيد المعالجة</option>
+                <option value="shipped" {% if current_status == 'shipped' %}selected{% endif %}>تم الشحن</option>
+                <option value="delivered" {% if current_status == 'delivered' %}selected{% endif %}>تم التوصيل</option>
+                <option value="cancelled" {% if current_status == 'cancelled' %}selected{% endif %}>ملغي</option>
+            </select>
+            <button type="submit" class="btn btn-outline-primary">فلترة</button>
+        </form>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>العميل</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>المبلغ</th>
+                        <th>الحالة</th>
+                        <th>طريقة الدفع</th>
+                        <th>التاريخ</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders.items %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.user.username }}</td>
+                            <td>{{ order.user.email }}</td>
+                            <td>${{ "%.2f"|format(order.total_amount) }}</td>
+                            <td>
+                                {% if order.status == 'pending' %}
+                                    <span class="badge bg-warning">في الانتظار</span>
+                                {% elif order.status == 'processing' %}
+                                    <span class="badge bg-info">قيد المعالجة</span>
+                                {% elif order.status == 'shipped' %}
+                                    <span class="badge bg-primary">تم الشحن</span>
+                                {% elif order.status == 'delivered' %}
+                                    <span class="badge bg-success">تم التوصيل</span>
+                                {% else %}
+                                    <span class="badge bg-danger">ملغي</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ order.payment_method }}</td>
+                            <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        تغيير الحالة
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ url_for('admin.update_order_status', id=order.id, status='pending') }}">في الانتظار</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin.update_order_status', id=order.id, status='processing') }}">قيد المعالجة</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin.update_order_status', id=order.id, status='shipped') }}">تم الشحن</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin.update_order_status', id=order.id, status='delivered') }}">تم التوصيل</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin.update_order_status', id=order.id, status='cancelled') }}">ملغي</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if orders.pages > 1 %}
+    <nav aria-label="صفحات الطلبات" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if orders.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.orders', page=orders.prev_num, status=current_status) }}">السابق</a>
+                </li>
+            {% endif %}
+            
+            {% for page_num in orders.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != orders.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.orders', page=page_num, status=current_status) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                    {% endif %}
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if orders.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.orders', page=orders.next_num, status=current_status) }}">التالي</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

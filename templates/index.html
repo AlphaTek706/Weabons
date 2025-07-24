@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Hero Section -->
+    <section class="hero-section bg-gradient-to-r from-gray-800 to-gray-900 text-white py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">أفضل متجر للأسلحة والمعدات العسكرية</h1>
+                    <p class="lead mb-4">تسوق من أحدث وأفضل الأسلحة والمعدات العسكرية بأسعار تنافسية</p>
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('main.products') }}" class="btn btn-primary btn-lg">تسوق الآن</a>
+
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center">
+                        <i class="fas fa-shield-alt" style="font-size: 200px; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Advertisements Section -->
+    {% if advertisements %}
+    <section class="advertisements-section py-4">
+        <div class="container">
+            <div class="row">
+                {% for ad in advertisements %}
+                {% if ad.position == 'header' %}
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        {% if ad.image_url %}
+                        <img src="{{ ad.image_url }}" class="card-img-top" alt="{{ ad.title }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ ad.title }}</h5>
+                            <p class="card-text">{{ ad.description }}</p>
+                            {% if ad.link_url %}
+                            <a href="{{ ad.link_url }}" class="btn btn-primary">المزيد</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Categories Section -->
+    {% if categories %}
+    <section class="categories-section py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">الفئات</h2>
+            <div class="row">
+                {% for category in categories %}
+                <div class="col-md-4 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-tag fa-3x mb-3 text-primary"></i>
+                            <h5 class="card-title">{{ category.name }}</h5>
+                            <p class="card-text">{{ category.description }}</p>
+                            <a href="{{ url_for('main.products', category=category.id) }}"
+                                class="btn btn-outline-primary">عرض المنتجات</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Featured Products Section -->
+    {% if featured_products %}
+    <section class="featured-products py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">المنتجات المميزة</h2>
+            <div class="row">
+                {% for product in featured_products %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100">
+                        {% if product.image_url %}
+                        <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}"
+                            style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light"
+                            style="height: 200px;">
+                            <i class="fas fa-image fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text flex-grow-1">{{ product.description[:100] }}...</p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 text-primary mb-0">${{ product.price }}</span>
+                                    <a href="{{ url_for('main.product_detail', id=product.id) }}"
+                                        class="btn btn-primary btn-sm">عرض التفاصيل</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-4">
+                <a href="{{ url_for('main.products') }}" class="btn btn-outline-primary btn-lg">عرض جميع المنتجات</a>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

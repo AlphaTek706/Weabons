@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}لوحة التحكم - متجر الأسلحة{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <style>
+        body {
+            direction: rtl;
+            padding-top: 56px;
+            /* ارتفاع شريط التنقل العلوي */
+            background-color: #f8f9fa;
+        }
+
+        /* شريط التنقل العلوي */
+        .navbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 1030;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+        }
+
+        /* زر القائمة الجانبية */
+        .sidebar-toggle {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        /* القائمة الجانبية */
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            right: 0;
+            bottom: 0;
+            width: 250px;
+            background-color: #343a40;
+            color: white;
+            transition: transform 0.3s ease-in-out;
+            z-index: 1020;
+            overflow-y: auto;
+        }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            margin-right: 250px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* عناصر القائمة الجانبية */
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .nav-link i {
+            margin-left: 10px;
+        }
+
+        /* تعديلات للشاشات الصغيرة */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(100%);
+                top: 56px;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-right: 0;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- شريط التنقل العلوي -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+        <div class="container-fluid">
+            <button class="sidebar-toggle me-2" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="navbar-brand fw-bold">مرحباً، {{ current_user.username }}</span>
+            <div class="navbar-nav ms-auto">
+                <span class="nav-item nav-link">
+                    <i class="fas fa-clock"></i> <span id="current-time"></span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- القائمة الجانبية -->
+    <div class="sidebar" id="sidebar">
+        <div class="p-3">
+            <h5 class="text-center mb-3"><i class="fas fa-shield-alt me-2"></i>لوحة التحكم</h5>
+
+            <nav class="nav flex-column">
+                <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
+                    href="{{ url_for('admin.dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i> الرئيسية
+                </a>
+                <a class="nav-link {% if request.endpoint == 'admin.products' %}active{% endif %}"
+                    href="{{ url_for('admin.products') }}">
+                    <i class="fas fa-box"></i> المنتجات
+                </a>
+                <a class="nav-link {% if request.endpoint == 'admin.orders' %}active{% endif %}"
+                    href="{{ url_for('admin.orders') }}">
+                    <i class="fas fa-shopping-cart"></i> الطلبات
+                </a>
+                <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}"
+                    href="{{ url_for('admin.users') }}">
+                    <i class="fas fa-users"></i> المستخدمين
+                </a>
+                <a class="nav-link {% if request.endpoint == 'admin.advertisements' %}active{% endif %}"
+                    href="{{ url_for('admin.advertisements') }}">
+                    <i class="fas fa-bullhorn"></i> الإعلانات
+                </a>
+                <a class="nav-link {% if request.endpoint == 'admin.reports' %}active{% endif %}"
+                    href="{{ url_for('admin.reports') }}">
+                    <i class="fas fa-chart-bar"></i> التقارير
+                </a>
+                <hr class="my-2 bg-secondary">
+                <a class="nav-link" href="{{ url_for('main.index') }}">
+                    <i class="fas fa-home"></i> الموقع الرئيسي
+                </a>
+                <a class="nav-link" href="{{ url_for('main.logout') }}">
+                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content" id="mainContent">
+        <!-- رسائل التنبيه -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="container-fluid mb-3">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- محتوى الصفحة -->
+        <div class="container-fluid bg-white rounded shadow-sm p-4">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Script الوقت الحالي -->
+    <script>
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('ar-SA', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+
+        // التحكم في القائمة الجانبية
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+
+            sidebarToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                sidebar.classList.toggle('show');
+            });
+
+            // إغلاق القائمة عند النقر خارجها
+            document.addEventListener('click', function (event) {
+                if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target) && window.innerWidth <= 992) {
+                    sidebar.classList.remove('show');
+                }
+            });
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
